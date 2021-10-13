@@ -22,9 +22,9 @@ class RVAdapter(private val rv: ArrayList<xmlpars.Entry>, val cont: Context): Re
         val rvv = rv[position].title
         val rvvd= rv[position].author
         var cat="category: "
-//        for (i in rv[position].category){
-//            cat="$cat $i,"
-//        }
+        for (i in rv[position].category){
+            cat="$cat $i,"
+        }
         holder.itemView.apply {
             var rvlisting= findViewById<CardView>(R.id.rvlisting)
             var ct= findViewById<TextView>(R.id.cardtitle)

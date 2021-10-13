@@ -1,5 +1,6 @@
 package com.example.rss_feed
 
+import android.util.Log
 import android.util.Xml
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
@@ -36,9 +37,9 @@ class xmlpars {
         }
         return entries
     }
-
-//    data class Entry(val title: String, val category: ArrayList<String>, val author: String, val published: String, val updated: String, val summary: String)
-    data class Entry(val title: String, val author: String, val published: String, val updated: String, val summary: String)
+    var author: String = ""
+    data class Entry(val title: String, val category: ArrayList<String>, val author: String, val published: String, val updated: String, val summary: String)
+//    data class Entry(val title: String, val author: String, val published: String, val updated: String, val summary: String)
     // Parses the contents of an entry. If it encounters a title, summary, or link tag, hands them off
 // to their respective "read" methods for processing. Otherwise, skips the tag.
     @Throws(XmlPullParserException::class, IOException::class)
@@ -47,7 +48,7 @@ class xmlpars {
         var title: String = ""
         var category: ArrayList<String>? =null
         var summary: String = ""
-        var author: String = ""
+
         var pub: String = ""
         var upd: String = ""
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -56,7 +57,7 @@ class xmlpars {
             }
             when (parser.name) {
                 "title" -> title = readTitle(parser)
-//                "category"-> category = readcate(parser)
+                "category"-> category = readcate(parser)
                 "summary" -> summary = readSummary(parser)
                 "author"-> author = readauth(parser)
                 "published"-> pub = readpub(parser)
@@ -64,8 +65,9 @@ class xmlpars {
                 else -> skip(parser)
             }
         }
-//        return Entry(title, category!!,"author: $author", pub.removeRange(10,20), upd.removeRange(10,20), summary)
-        return Entry(title, "author: $author", pub.removeRange(10,20), upd.removeRange(10,20), summary)
+    Log.d("catedata", "$category")
+        return Entry(title, category!!,"author: $author", pub.removeRange(10,20), upd.removeRange(10,20), summary)
+//        return Entry(title, "author: $author", pub.removeRange(10,20), upd.removeRange(10,20), summary)
     }
 
     // Processes title tags in the feed.
@@ -82,14 +84,14 @@ class xmlpars {
         parser.require(XmlPullParser.START_TAG, ns, "author")
         parser.nextTag()
         parser.require(XmlPullParser.START_TAG, ns, "name")
-        var name = readText(parser)
-        if (name == null)name=""
+        author = readText(parser)
+
+        if (author == null)author=""
         parser.nextTag()
         skip(parser)
         parser.nextTag()
-//        while (parser.name!="author")parser.nextTag()
         parser.require(XmlPullParser.END_TAG, ns, "author")
-        return name
+        return author
     }
     @Throws(IOException::class, XmlPullParserException::class)
     private fun readupd(parser: XmlPullParser): String {
@@ -118,11 +120,15 @@ class xmlpars {
     @Throws(IOException::class, XmlPullParserException::class)
     private fun readcate(parser: XmlPullParser): ArrayList<String> {
         var cat=arrayListOf<String>()
-        while (parser.name.equals("category")) {
-            parser.require(XmlPullParser.START_TAG, ns, "category")
-            cat.add(readText(parser))
-            parser.require(XmlPullParser.END_TAG, ns, "category")
+        parser.require(XmlPullParser.START_TAG, ns, "category")
+        while (parser.name!="author") {
+            cat.add(parser.getAttributeValue(null,"term"))
+            parser.next()
+            parser.nextTag()
+
         }
+        readauth(parser)
+//        parser.require(XmlPullParser.END_TAG, ns, "category")
         return cat
     }
 
