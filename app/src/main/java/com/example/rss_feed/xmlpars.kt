@@ -58,14 +58,14 @@ class xmlpars {
                 "title" -> title = readTitle(parser)
 //                "category"-> category = readcate(parser)
                 "summary" -> summary = readSummary(parser)
-                "name"-> author = readauth(parser)
+                "author"-> author = readauth(parser)
                 "published"-> pub = readpub(parser)
                 "updated"-> upd = readupd(parser)
                 else -> skip(parser)
             }
         }
-//        return Entry(title!!, category!!, author!!, pub!!, upd!!, summary!!)
-        return Entry(title!!, "author: $author", pub!!, upd!!, summary!!)
+//        return Entry(title, category!!,"author: $author", pub.removeRange(10,20), upd.removeRange(10,20), summary)
+        return Entry(title, "author: $author", pub.removeRange(10,20), upd.removeRange(10,20), summary)
     }
 
     // Processes title tags in the feed.
@@ -79,17 +79,23 @@ class xmlpars {
 
     @Throws(IOException::class, XmlPullParserException::class)
     private fun readauth(parser: XmlPullParser): String {
+        parser.require(XmlPullParser.START_TAG, ns, "author")
+        parser.nextTag()
         parser.require(XmlPullParser.START_TAG, ns, "name")
-//        val name = parser.getAttributeValue(null,"term")
-        val name = readText(parser)
-        parser.require(XmlPullParser.END_TAG, ns, "name")
+        var name = readText(parser)
+        if (name == null)name=""
+        parser.nextTag()
+        skip(parser)
+        parser.nextTag()
+//        while (parser.name!="author")parser.nextTag()
+        parser.require(XmlPullParser.END_TAG, ns, "author")
         return name
     }
     @Throws(IOException::class, XmlPullParserException::class)
     private fun readupd(parser: XmlPullParser): String {
-        parser.require(XmlPullParser.START_TAG, ns, "update")
+        parser.require(XmlPullParser.START_TAG, ns, "updated")
         val update = readText(parser)
-        parser.require(XmlPullParser.END_TAG, ns, "update")
+        parser.require(XmlPullParser.END_TAG, ns, "updated")
         return update
     }
 
@@ -136,7 +142,7 @@ class xmlpars {
             throw IllegalStateException()
         }
         var depth = 1
-        if(parser.name.equals("author"))depth=0
+//        if(parser.name.equals("author"))depth=0
         while (depth != 0) {
             when (parser.next()) {
                 XmlPullParser.END_TAG -> depth--
